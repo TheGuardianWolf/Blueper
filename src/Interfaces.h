@@ -13,7 +13,8 @@ public:
     virtual ~IScanner() = default;
     virtual void start() = 0;
     virtual void update() = 0;
-    virtual int getLatestRSSI() const = 0;
+    virtual int getRSSI() const = 0;
+    virtual void setRSSI(const int rssi) = 0;
 };
 
 class IBlinker

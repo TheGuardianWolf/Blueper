@@ -9,11 +9,13 @@
 class Scanner : public IScanner
 {
 public:
-    Scanner(const std::string &uuid);
+    Scanner();
     void start() override;
-    int getLatestRSSI() const override;
+    int getRSSI() const override;
+    void setRSSI(const int rssi) override;
 
 private:
+    static Scanner *s_registeredScanner;
     static void onScanComplete(BLEScanResults results);
 
     class AdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
@@ -23,8 +25,8 @@ private:
         void onResult(BLEAdvertisedDevice advertisedDevice) override;
 
     private:
-        std::string targetUUID;
-        Scanner &scanner;
+        std::string m_targetUUID;
+        Scanner &m_scanner;
     };
 
     BLEScan *m_pBLEScan;

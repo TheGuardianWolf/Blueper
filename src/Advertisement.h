@@ -8,10 +8,11 @@
 class Advertisement : public IAdvertisement
 {
 public:
-    Advertisement(const std::string &uuid, uint16_t major, uint16_t minor, int8_t txPower);
+    Advertisement(uint16_t major, uint16_t minor, int8_t txPower);
     void start() override;
 
 private:
+    BLEServer *m_pServer;
     BLEAdvertising *m_pAdvertising;
     BLEService *m_pService;
     BLECharacteristic *m_pCharacteristic;

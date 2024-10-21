@@ -12,7 +12,7 @@ void Behaviour::run()
     while (true)
     {
         m_pScanner->update();
-        int rssi = m_pScanner->getLatestRSSI();
+        int rssi = m_pScanner->getRSSI();
         handleScanResult(rssi);
     }
 }
