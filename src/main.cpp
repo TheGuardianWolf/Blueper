@@ -10,12 +10,15 @@ void setup()
 {
   // Device specific setup
   Serial.begin(115200);
+  Serial.println("Initialising...");
 
-  std::shared_ptr<IAdvertisement> advertisement = std::make_shared<Advertisement>(1, 1, 20);
-  std::shared_ptr<IScanner> scanner = std::make_shared<Scanner>();
-  std::shared_ptr<IBlinker> blinker = std::make_shared<Blinker>(LED_PIN);
+  std::unique_ptr<IAdvertisement> advertisement = std::make_unique<Advertisement>();
+  std::unique_ptr<IScanner> scanner = std::make_unique<Scanner>();
+  std::unique_ptr<IBlinker> blinker = std::make_unique<Blinker>(LED_PIN);
 
-  Behaviour app(advertisement, scanner, blinker);
+  Behaviour app(*advertisement, *scanner, *blinker);
+
+  Serial.println("Initialisation complete");
   app.run(); // Blocks here
 }
 

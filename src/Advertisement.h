@@ -8,12 +8,14 @@
 class Advertisement : public IAdvertisement
 {
 public:
-    Advertisement(uint16_t major, uint16_t minor, int8_t txPower);
+    Advertisement();
     void start() override;
 
 private:
     BLEServer *m_pServer;
     BLEAdvertising *m_pAdvertising;
     BLEService *m_pService;
-    BLECharacteristic *m_pCharacteristic;
+
+    BLESecurity m_security;
+    BLECharacteristic m_characteristic;
 };
