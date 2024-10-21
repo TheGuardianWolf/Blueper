@@ -21,16 +21,6 @@ private:
         {
         }
 
-        void onConnect(BLEServer *pServer)
-        {
-            pServer->startAdvertising();
-        };
-
-        void onDisconnect(BLEServer *pServer)
-        {
-            pServer->startAdvertising();
-        }
-
     private:
         Advertisement &m_advertisement;
     };

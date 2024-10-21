@@ -11,7 +11,7 @@ Advertisement::Advertisement()
 
     // Initialise device and BT service
     m_pServer = BLEDevice::createServer();
-    m_pServer->setCallbacks(m_pCallbacks.get());
+    // m_pServer->setCallbacks(m_pCallbacks.get());
     m_pService = m_pServer->createService(BLUEPER_SERVICE_ID);
     m_pCharacteristic = m_pService->createCharacteristic(
         BLUEPER_CHARACTERISTIC_ID,
@@ -28,6 +28,7 @@ Advertisement::Advertisement()
 
     m_pAdvertising = m_pServer->getAdvertising();
     m_pAdvertising->setAdvertisementData(advertisementData);
+    m_pAdvertising->setScanResponse(true);
     m_pAdvertising->addServiceUUID(BLUEPER_SERVICE_ID);
 }
 
