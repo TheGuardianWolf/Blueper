@@ -1,9 +1,9 @@
 #include "Advertisement.h"
 #include "Defines.h"
-#include "Arduino.h"
+#include <Arduino.h>
 
 Advertisement::Advertisement()
-    : m_pCallbacks(std::make_unique<BLECallbacks>(*this))
+    : m_pCallbacks(std::make_unique<BLECallbacks>())
 {
     BLEDevice::init(BLUEPER_NAME);
     // Bonding should be "Just Works" or push button
@@ -11,7 +11,8 @@ Advertisement::Advertisement()
 
     // Initialise device and BT service
     m_pServer = BLEDevice::createServer();
-    // m_pServer->setCallbacks(m_pCallbacks.get());
+    // BLEDevice::setSecurityCallbacks(m_pCallbacks.get());
+    m_pServer->setCallbacks(m_pCallbacks.get());
     m_pService = m_pServer->createService(BLUEPER_SERVICE_ID);
     m_pCharacteristic = m_pService->createCharacteristic(
         BLUEPER_CHARACTERISTIC_ID,
@@ -36,5 +37,37 @@ void Advertisement::start()
 {
     m_pService->start();
     m_pAdvertising->start();
+
     Serial.println("Advertisement started");
 }
+
+void Advertisement::BLECallbacks::onConnect(BLEServer *pServer, esp_ble_gatts_cb_param_t *param)
+{
+    Serial.println("Device connected");
+    pServer->startAdvertising();
+}
+
+void Advertisement::BLECallbacks::onDisconnect(BLEServer *pServer, esp_ble_gatts_cb_param_t *param)
+{
+    Serial.println("Device disconnected");
+    pServer->startAdvertising();
+}
+
+// bool Advertisement::BLECallbacks::onSecurityRequest()
+// {
+//     Serial.println("Pairing request");
+
+//     // if (m_advertisement.m_paired)
+//     // {
+//     //     return false;
+//     // }
+
+//     // m_advertisement.m_paired = true;
+//     return true;
+// }
+
+// void Advertisement::BLECallbacks::onAuthenticationComplete(esp_ble_auth_cmpl_t details)
+// {
+//     Serial.printf("Pairing complete: %s\n", details.success);
+//     // m_advertisement.m_paired = details.success;
+// }
