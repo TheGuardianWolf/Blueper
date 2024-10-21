@@ -11,6 +11,7 @@ class Scanner : public IScanner
 public:
     Scanner();
     void start() override;
+    void update() override;
     int getRSSI() const override;
     void setRSSI(const int rssi) override;
 

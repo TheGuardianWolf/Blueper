@@ -2,6 +2,8 @@
 #include "Scanner.h"
 #include "Defines.h"
 
+/*STATIC*/ Scanner *Scanner::s_registeredScanner = nullptr;
+
 /*STATIC*/ void Scanner::onScanComplete(BLEScanResults results)
 {
     if (s_registeredScanner == nullptr)
@@ -9,7 +11,7 @@
         return;
     }
 
-    s_registeredScanner->start();
+    s_registeredScanner->update();
 }
 
 Scanner::Scanner()
@@ -21,6 +23,11 @@ Scanner::Scanner()
 void Scanner::start()
 {
     s_registeredScanner = this;
+    update();
+}
+
+void Scanner::update()
+{
     m_pBLEScan->start(5, &onScanComplete, true);
 }
 
