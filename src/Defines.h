@@ -6,4 +6,3 @@
 #define LED_PIN 2 // Change this to the pin connected to your LED
 
 #define DEFAULT_BLUEPER_VALUE "Blue Dogs"
-constexpr uint16_t BLUEPER_DESCRIPTOR_ID = 0x2A37;

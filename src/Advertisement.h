@@ -4,6 +4,7 @@
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
+#include <memory>
 
 class Advertisement : public IAdvertisement
 {
@@ -12,10 +13,33 @@ public:
     void start() override;
 
 private:
+    class BLECallbacks : public BLEServerCallbacks
+    {
+    public:
+        BLECallbacks(Advertisement &advertisement)
+            : m_advertisement(advertisement)
+        {
+        }
+
+        void onConnect(BLEServer *pServer)
+        {
+            pServer->startAdvertising();
+        };
+
+        void onDisconnect(BLEServer *pServer)
+        {
+            pServer->startAdvertising();
+        }
+
+    private:
+        Advertisement &m_advertisement;
+    };
+
     BLEServer *m_pServer;
     BLEAdvertising *m_pAdvertising;
     BLEService *m_pService;
+    BLECharacteristic *m_pCharacteristic;
 
+    const std::unique_ptr<BLECallbacks> m_pCallbacks;
     BLESecurity m_security;
-    BLECharacteristic m_characteristic;
 };

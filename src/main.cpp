@@ -13,13 +13,15 @@ void setup()
   Serial.println("Initialising...");
 
   std::unique_ptr<IAdvertisement> advertisement = std::make_unique<Advertisement>();
-  std::unique_ptr<IScanner> scanner = std::make_unique<Scanner>();
-  std::unique_ptr<IBlinker> blinker = std::make_unique<Blinker>(LED_PIN);
+  // std::unique_ptr<IScanner> scanner = std::make_unique<Scanner>();
+  // std::unique_ptr<IBlinker> blinker = std::make_unique<Blinker>(LED_PIN);
 
-  Behaviour app(*advertisement, *scanner, *blinker);
+  // Behaviour app(*advertisement, *scanner, *blinker);
+
+  advertisement->start();
 
   Serial.println("Initialisation complete");
-  app.run(); // Blocks here
+  // app.run(); // Blocks here
 }
 
 void loop()
