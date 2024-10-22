@@ -24,3 +24,9 @@ public:
     virtual void setBlinkDelay(int delay) = 0;
     virtual void blink() = 0;
 };
+
+class ITime
+{
+public:
+    virtual ~ITime() = default;
+};
