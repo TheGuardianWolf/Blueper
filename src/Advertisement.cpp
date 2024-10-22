@@ -94,8 +94,8 @@ void Advertisement::ServerCallbacks::onDisconnect(BLEServer *pServer, esp_ble_ga
 
 void Advertisement::ServerCallbacks::onWrite(BLECharacteristic *pCharacteristic, esp_ble_gatts_cb_param_t *param)
 {
-    auto uuidString = pCharacteristic->getUUID().toString();
-    Serial.printf("Received characteristic write to: %s\n", uuidString.c_str());
+    auto uuid = pCharacteristic->getUUID();
+    Serial.printf("Received characteristic write to: %s\n", uuid.toString().c_str());
 
     if (!m_advertisement.m_configurable)
     {
@@ -106,13 +106,13 @@ void Advertisement::ServerCallbacks::onWrite(BLECharacteristic *pCharacteristic,
     }
 
     auto value = pCharacteristic->getValue();
-    if (uuidString == BLUEPER_CHARACTERISTIC_SET_TOPIC_ID)
+    if (uuid.equals(BLUEPER_CHARACTERISTIC_SET_TOPIC_ID))
     {
         auto *topicChar = m_advertisement.m_pCharacteristicTopic;
         topicChar->setValue(value);
         topicChar->notify();
     }
-    else if (uuidString == BLUEPER_CHARACTERISTIC_SET_DEVICE_NAME_ID)
+    else if (uuid.equals(BLUEPER_CHARACTERISTIC_SET_DEVICE_NAME_ID))
     {
         Serial.printf("Prentend device name changed to: %s\n", value.c_str());
         pCharacteristic->notify();

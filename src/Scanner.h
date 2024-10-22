@@ -9,29 +9,37 @@
 class Scanner : public IScanner
 {
 public:
-    Scanner();
+    static Scanner &create();
+
+    // Prevent creation
+    Scanner(Scanner const &) = delete;
+    void operator=(Scanner const &) = delete;
+
     void start() override;
     void update() override;
     int getRSSI() const override;
     void setRSSI(const int rssi) override;
 
-private:
-    static Scanner *s_registeredScanner;
-    static void onScanComplete(BLEScanResults results);
+    friend class AdvertisedDeviceCallbacks;
 
+private:
     class AdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
     {
     public:
-        AdvertisedDeviceCallbacks(const std::string &uuid, Scanner &scanner);
+        AdvertisedDeviceCallbacks(const BLEUUID &uuid, Scanner &scanner);
         void onResult(BLEAdvertisedDevice advertisedDevice) override;
 
     private:
-        std::string m_targetUUID;
+        const BLEUUID m_targetUUID;
         Scanner &m_scanner;
     };
 
+    static void onScanComplete(BLEScanResults results);
+
+    Scanner();
+
     BLEScan *m_pBLEScan;
-    const std::unique_ptr<AdvertisedDeviceCallbacks> m_pCallbacks;
+    std::unique_ptr<AdvertisedDeviceCallbacks> m_pCallbacks;
 
     int m_latestRSSI;
 };

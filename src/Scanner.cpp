@@ -2,33 +2,37 @@
 #include "Scanner.h"
 #include "Defines.h"
 
-/*STATIC*/ Scanner *Scanner::s_registeredScanner = nullptr;
-
-/*STATIC*/ void Scanner::onScanComplete(BLEScanResults results)
+// Singleton
+Scanner &Scanner::create()
 {
-    if (s_registeredScanner == nullptr)
-    {
-        return;
-    }
+    static Scanner instance;
 
-    s_registeredScanner->update();
+    return instance;
+}
+
+void Scanner::onScanComplete(BLEScanResults results)
+{
+    Serial.println("Scan completed");
+    auto &scanner = create();
+    scanner.update();
 }
 
 Scanner::Scanner()
-    : m_pCallbacks(std::make_unique<AdvertisedDeviceCallbacks>(BLUEPER_SERVICE_ID, *this)), m_latestRSSI(0), m_pBLEScan(BLEDevice::getScan())
+    : m_latestRSSI(0), m_pBLEScan(BLEDevice::getScan())
 {
-    m_pBLEScan->setAdvertisedDeviceCallbacks(m_pCallbacks.get());
 }
 
 void Scanner::start()
 {
-    s_registeredScanner = this;
+    m_pCallbacks = std::make_unique<AdvertisedDeviceCallbacks>(BLUEPER_SERVICE_ID, *this);
+    m_pBLEScan->setAdvertisedDeviceCallbacks(m_pCallbacks.get());
     update();
 }
 
 void Scanner::update()
 {
-    m_pBLEScan->start(5, &onScanComplete, true);
+    Serial.println("Scan started");
+    m_pBLEScan->start(5, &onScanComplete, false);
 }
 
 int Scanner::getRSSI() const
@@ -41,12 +45,12 @@ void Scanner::setRSSI(const int rssi)
     m_latestRSSI = rssi;
 }
 
-Scanner::AdvertisedDeviceCallbacks::AdvertisedDeviceCallbacks(const std::string &uuid, Scanner &scanner)
+Scanner::AdvertisedDeviceCallbacks::AdvertisedDeviceCallbacks(const BLEUUID &uuid, Scanner &scanner)
     : m_targetUUID(uuid), m_scanner(scanner) {}
 
 void Scanner::AdvertisedDeviceCallbacks::onResult(BLEAdvertisedDevice advertisedDevice)
 {
-    if (advertisedDevice.haveServiceUUID() && advertisedDevice.getServiceUUID().equals(BLEUUID(m_targetUUID)))
+    if (advertisedDevice.haveServiceUUID() && advertisedDevice.getServiceUUID().equals(m_targetUUID))
     {
         Serial.print("Beacon found: ");
         Serial.println(advertisedDevice.toString().c_str());
