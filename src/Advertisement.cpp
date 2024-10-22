@@ -85,7 +85,7 @@ void Advertisement::ServerCallbacks::onDisconnect(BLEServer *pServer, esp_ble_ga
 void Advertisement::ServerCallbacks::onWrite(BLECharacteristic *pCharacteristic, esp_ble_gatts_cb_param_t *param)
 {
     auto uuidString = pCharacteristic->getUUID().toString();
-    Serial.printf("Received characteristic write to: %s\n", uuidString);
+    Serial.printf("Received characteristic write to: %s\n", uuidString.c_str());
 
     if (!m_advertisement.m_configurable)
     {
