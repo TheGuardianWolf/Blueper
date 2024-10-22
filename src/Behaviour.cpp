@@ -6,7 +6,7 @@ Behaviour::Behaviour(IAdvertisement &advertisement, IScanner &scanner, IBlinker 
 
 void Behaviour::run()
 {
-    m_advertisement.start();
+    // m_advertisement.start();
     m_scanner.start();
 
     while (true)

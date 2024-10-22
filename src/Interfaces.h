@@ -1,11 +1,9 @@
 #pragma once
 
-class IAdvertisement
-{
-public:
-    virtual ~IAdvertisement() = default;
-    virtual void start() = 0;
-};
+class IScanner;
+class IBlinker;
+class ITiming;
+class IAdvertisement;
 
 class IScanner
 {
@@ -25,8 +23,17 @@ public:
     virtual void blink() = 0;
 };
 
-class ITime
+class ITiming
 {
 public:
-    virtual ~ITime() = default;
+    virtual ~ITiming() = default;
+    virtual unsigned long getTimestamp() = 0;
+};
+
+class IAdvertisement
+{
+public:
+    virtual ~IAdvertisement() = default;
+    virtual void start(ITiming *pTiming) = 0;
+    virtual void loop() = 0;
 };
