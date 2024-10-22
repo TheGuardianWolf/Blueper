@@ -66,4 +66,5 @@ private:
     BLECharacteristic *m_pCharacteristicTopic;
     BLECharacteristic *m_pCharacteristicSetTopic;
     BLECharacteristic *m_pCharacteristicDeviceName;
+    BLECharacteristic *m_pCharacteristicConfigurable;
 };

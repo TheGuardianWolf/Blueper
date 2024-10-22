@@ -37,12 +37,19 @@ void Advertisement::start(ITiming *pTiming)
         BLUEPER_CHARACTERISTIC_DEVICE_NAME_ID,
         BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
 
+    m_pCharacteristicConfigurable = m_pService->createCharacteristic(
+        BLUEPER_CHARACTERISTIC_CONFIGURABLE_ID,
+        BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
+
     m_pCharacteristicSetTopic->setCallbacks(m_pCallbacks.get());
     m_pCharacteristicDeviceName->setCallbacks(m_pCallbacks.get());
 
     // Eventually save this into mem
     m_pCharacteristicTopic->setValue(DEFAULT_BLUEPER_VALUE);
     m_pCharacteristicDeviceName->setValue(BLUEPER_NAME);
+
+    uint8_t TRUE = 1;
+    m_pCharacteristicConfigurable->setValue(&TRUE, 1);
 
     BLEAdvertisementData advertisementData;
     advertisementData.setAppearance(ESP_BLE_APPEARANCE_GENERIC_TAG); // Generic Tag
@@ -67,6 +74,10 @@ void Advertisement::loop()
     {
         Serial.println("Disabling configuration!");
         m_configurable = false;
+
+        uint8_t FALSE = 0;
+        m_pCharacteristicConfigurable->setValue(&FALSE, 1);
+        m_pCharacteristicConfigurable->notify();
     }
 }
 
@@ -102,7 +113,10 @@ void Advertisement::ServerCallbacks::onWrite(BLECharacteristic *pCharacteristic,
     }
     else if (uuidString == BLUEPER_CHARACTERISTIC_DEVICE_NAME_ID)
     {
-        Serial.printf("Prentend device name changed to: %s\n", value);
+        Serial.printf("Prentend device name changed to: %s\n", value.c_str());
         pCharacteristic->notify();
     }
+
+    // Clear user input
+    pCharacteristic->setValue(nullptr, 0);
 }
