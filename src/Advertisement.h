@@ -65,6 +65,6 @@ private:
     BLEService *m_pService;
     BLECharacteristic *m_pCharacteristicTopic;
     BLECharacteristic *m_pCharacteristicSetTopic;
-    BLECharacteristic *m_pCharacteristicDeviceName;
-    BLECharacteristic *m_pCharacteristicConfigurable;
+    BLECharacteristic *m_pCharacteristicSetDeviceName;
+    BLECharacteristic *m_pCharacteristicIsConfigurable;
 };
