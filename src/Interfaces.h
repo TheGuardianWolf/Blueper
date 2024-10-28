@@ -27,7 +27,10 @@ class ITiming
 {
 public:
     virtual ~ITiming() = default;
-    virtual unsigned long getTimestamp() = 0;
+    virtual void loop() = 0;
+    virtual unsigned long long getTimestamp() = 0;
+    virtual void scheduleEvent(std::function<bool()> callback, unsigned long long period, unsigned long long startTime) = 0;
+    virtual void scheduleEventAbsolute(std::function<bool()> callback, unsigned long long period, unsigned long long startTimeAbsolute) = 0;
 };
 
 class IAdvertisement

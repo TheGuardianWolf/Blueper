@@ -63,5 +63,6 @@
     "mutex": "cpp",
     "thread": "cpp",
     "variant": "cpp"
-  }
+  },
+  "C_Cpp.default.cppStandard": "c++23"
 }

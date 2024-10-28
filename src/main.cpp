@@ -29,8 +29,8 @@ void setup()
 
   while (true)
   {
-    advertisement.loop();
-    delay(1000);
+    timing.loop();
+    delay(50);
   }
 }
 
