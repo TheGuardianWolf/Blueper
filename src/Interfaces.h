@@ -1,5 +1,8 @@
 #pragma once
 
+#include <stddef.h>
+#include <functional>
+
 class IScanner;
 class IBlinker;
 class ITiming;
@@ -20,7 +23,6 @@ class IBlinker
 public:
     virtual ~IBlinker() = default;
     virtual void setBlinkDelay(int delay) = 0;
-    virtual void blink() = 0;
 };
 
 class ITiming
@@ -29,8 +31,9 @@ public:
     virtual ~ITiming() = default;
     virtual void loop() = 0;
     virtual unsigned long long getTimestamp() = 0;
-    virtual void scheduleEvent(std::function<bool()> callback, unsigned long long period, unsigned long long startTime) = 0;
-    virtual void scheduleEventAbsolute(std::function<bool()> callback, unsigned long long period, unsigned long long startTimeAbsolute) = 0;
+    virtual size_t scheduleEvent(std::function<bool()> callback, unsigned long long period, unsigned long long startTime) = 0;
+    virtual size_t scheduleEventAbsolute(std::function<bool()> callback, unsigned long long period, unsigned long long startTimeAbsolute) = 0;
+    virtual bool removeEvent(size_t id) = 0;
 };
 
 class IAdvertisement

@@ -16,8 +16,9 @@ public:
 
     void loop() override;
     unsigned long long getTimestamp() override;
-    void scheduleEvent(std::function<bool()>, unsigned long long period, unsigned long long startTime = 0) override;
-    void scheduleEventAbsolute(std::function<bool()>, unsigned long long period, unsigned long long startTimeAbsolute = 0) override;
+    size_t scheduleEvent(std::function<bool()>, unsigned long long period, unsigned long long startTime = 0) override;
+    size_t scheduleEventAbsolute(std::function<bool()>, unsigned long long period, unsigned long long startTimeAbsolute = 0) override;
+    bool removeEvent(size_t id) override;
 
 private:
     struct ScheduledEventOptions

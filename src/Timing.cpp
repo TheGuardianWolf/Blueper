@@ -1,16 +1,19 @@
 #include "Timing.h"
 #include <set>
+#include <algorithm>
 
 // Singleton
+bool Timing::s_init = false;
+ESP32Time Timing::s_espTime;
+
 Timing &Timing::create()
 {
     static Timing instance;
 
-    std::lock_guard lock{instance.m_lock};
     if (!s_init)
     {
         s_init = true;
-        instance.s_espTime.setTime(0);
+        s_espTime.setTime(0);
     }
 
     return instance;
@@ -41,9 +44,8 @@ void Timing::loop()
     }
 
     m_scheduledEvents.remove_if(
-        [&unscheduleForIDs](auto &el)
+        [&unscheduleForIDs](auto &options)
         {
-            auto &[options, _] = el;
             return static_cast<bool>(unscheduleForIDs.count(options.m_id));
         });
 }
@@ -53,7 +55,7 @@ unsigned long long Timing::getTimestamp()
     return static_cast<unsigned long long>(s_espTime.getEpoch()) * 1000 + s_espTime.getMillis();
 }
 
-void Timing::scheduleEvent(std::function<bool()> callback, unsigned long long period, unsigned long long startTime = 0)
+size_t Timing::scheduleEvent(std::function<bool()> callback, unsigned long long period, unsigned long long startTime)
 {
     auto ts = getTimestamp();
 
@@ -69,9 +71,11 @@ void Timing::scheduleEvent(std::function<bool()> callback, unsigned long long pe
     std::lock_guard lock{m_lock};
     m_nextID += 1;
     m_scheduledEvents.push_back(options);
+
+    return options.m_id;
 }
 
-void Timing::scheduleEventAbsolute(std::function<bool()> callback, unsigned long long period, unsigned long long startTimeAbsolute = 0)
+size_t Timing::scheduleEventAbsolute(std::function<bool()> callback, unsigned long long period, unsigned long long startTimeAbsolute)
 {
     auto ts = getTimestamp();
 
@@ -87,4 +91,23 @@ void Timing::scheduleEventAbsolute(std::function<bool()> callback, unsigned long
     std::lock_guard lock{m_lock};
     m_nextID += 1;
     m_scheduledEvents.push_back(options);
+
+    return options.m_id;
+}
+
+bool Timing::removeEvent(size_t id)
+{
+    std::lock_guard lock{m_lock};
+
+    auto optionsIt = std::find_if(m_scheduledEvents.begin(), m_scheduledEvents.end(),
+                                  [&id](auto &options)
+                                  { return options.m_id == id; });
+
+    if (optionsIt == m_scheduledEvents.end())
+    {
+        return false;
+    }
+
+    m_scheduledEvents.erase(optionsIt);
+    return true;
 }

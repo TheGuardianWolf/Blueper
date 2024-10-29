@@ -68,8 +68,8 @@ void Advertisement::start(ITiming *pTiming)
 
 void Advertisement::loop()
 {
-    auto currentSeconds = m_pTiming->getTimestamp();
-    if (currentSeconds >= 60 && m_configurable)
+    auto currentMs = m_pTiming->getTimestamp();
+    if (currentMs >= 60000 && m_configurable)
     {
         Serial.println("Disabling configuration!");
         m_configurable = false;

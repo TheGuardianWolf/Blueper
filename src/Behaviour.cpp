@@ -23,6 +23,5 @@ void Behaviour::handleScanResult(int rssi)
     {                                                    // Assuming 0 means no valid RSSI
         auto blinkDelay = map(rssi, -100, 0, 1000, 100); // Adjust the range as needed
         m_blinker.setBlinkDelay(blinkDelay);
-        m_blinker.blink();
     }
 }
