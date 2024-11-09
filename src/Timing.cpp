@@ -36,6 +36,7 @@ void Timing::loop()
             continue;
         }
 
+        Serial.printf("Running scheduled event with id %d \n", options.m_id);
         auto shouldUnschedule = options.m_callback();
         if (shouldUnschedule)
         {
