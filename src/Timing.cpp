@@ -29,14 +29,16 @@ void Timing::loop()
     for (auto &options : m_scheduledEvents)
     {
         auto shouldStart = options.m_startTimeIsAbsolute && ts >= options.m_startTime ||
-                           !options.m_startTimeIsAbsolute && (ts - options.m_scheduledTime) >= (options.m_startTime - options.m_scheduledTime);
+                           !options.m_startTimeIsAbsolute && options.m_scheduledTime <= ts && (ts - options.m_scheduledTime) >= (options.m_startTime + options.m_scheduledTime);
         auto periodElapsed = options.m_period == 0 || options.m_lastExecutionTime == 0 || (ts - options.m_lastExecutionTime) >= options.m_period;
+
         if (!shouldStart || !periodElapsed)
         {
             continue;
         }
 
         Serial.printf("Running scheduled event with id %d \n", options.m_id);
+        options.m_lastExecutionTime = ts;
         auto shouldUnschedule = options.m_callback();
         if (shouldUnschedule)
         {
@@ -67,7 +69,8 @@ size_t Timing::scheduleEvent(std::function<bool()> callback, unsigned long long 
         .m_startTime = startTime,
         .m_scheduledTime = ts,
         .m_startTimeIsAbsolute = false,
-        .m_lastExecutionTime = 0};
+        .m_lastExecutionTime = 0,
+        .m_nextExecutionTime = ts + startTime};
 
     std::lock_guard lock{m_lock};
     m_nextID += 1;
@@ -87,7 +90,8 @@ size_t Timing::scheduleEventAbsolute(std::function<bool()> callback, unsigned lo
         .m_startTime = startTimeAbsolute,
         .m_scheduledTime = ts,
         .m_startTimeIsAbsolute = true,
-        .m_lastExecutionTime = 0};
+        .m_lastExecutionTime = 0,
+        .m_nextExecutionTime = startTimeAbsolute};
 
     std::lock_guard lock{m_lock};
     m_nextID += 1;

@@ -30,6 +30,7 @@ private:
         unsigned long long m_scheduledTime = 0;
         bool m_startTimeIsAbsolute = false;
         unsigned long long m_lastExecutionTime = 0;
+        unsigned long long m_nextExecutionTime = 0;
     };
 
     Timing() {}
