@@ -6,13 +6,17 @@
 class Behaviour
 {
 public:
-    Behaviour(IAdvertisement &advertisement, IScanner &scanner, IBlinker &blinker);
-    void run();
+    Behaviour(ITiming &timing, IAdvertisement &advertisement, IScanner &scanner, IBlinker &blinker);
+    void start();
 
 private:
+    ITiming &m_timing;
     IAdvertisement &m_advertisement;
     IScanner &m_scanner;
     IBlinker &m_blinker;
 
     void handleScanResult(int rssi);
+
+    size_t m_blinkRefreshID = 0;
+    int m_currentRssi = 0;
 };

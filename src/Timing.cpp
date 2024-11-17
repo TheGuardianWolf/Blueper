@@ -23,10 +23,16 @@ void Timing::loop()
 {
     auto ts = getTimestamp();
 
-    std::lock_guard lock{m_lock};
+    std::list<Timing::ScheduledEventOptions> scheduledEvents;
+
+    {
+        std::lock_guard lock{m_lock};
+        scheduledEvents.insert(scheduledEvents.end(), m_scheduledEvents.begin(), m_scheduledEvents.end());
+    }
 
     std::set<size_t> unscheduleForIDs;
-    for (auto &options : m_scheduledEvents)
+    std::set<size_t> rescheduleForIDs;
+    for (auto &options : scheduledEvents)
     {
         if (ts < options.m_nextExecutionTime)
         {
@@ -36,20 +42,31 @@ void Timing::loop()
         Serial.printf("Running scheduled event with id %d at ts: %llu\n", options.m_id, ts);
         auto shouldUnschedule = options.m_callback() || options.m_period == 0;
 
-        // Schedule for next time
-        options.m_nextExecutionTime += options.m_period;
-
         if (shouldUnschedule)
         {
             unscheduleForIDs.insert(options.m_id);
         }
+        else
+        {
+            rescheduleForIDs.insert(options.m_id);
+        }
     }
 
-    m_scheduledEvents.remove_if(
-        [&unscheduleForIDs](auto &options)
+    {
+        std::lock_guard lock{m_lock};
+        m_scheduledEvents.remove_if(
+            [&unscheduleForIDs](auto &options)
+            {
+                return static_cast<bool>(unscheduleForIDs.count(options.m_id));
+            });
+        for (auto &options : m_scheduledEvents)
         {
-            return static_cast<bool>(unscheduleForIDs.count(options.m_id));
-        });
+            if (rescheduleForIDs.find(options.m_id) != rescheduleForIDs.end())
+            {
+                options.m_nextExecutionTime += options.m_period;
+            }
+        }
+    }
 }
 
 unsigned long long Timing::getTimestamp()

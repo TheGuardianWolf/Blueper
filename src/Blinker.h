@@ -6,8 +6,8 @@
 class Blinker : public IBlinker
 {
 public:
-    const int INFINITE = -2;
-    const int OFF = -1;
+    static const int INFINITE = -2;
+    static const int OFF = -1;
 
     Blinker(ITiming &timing, int pin);
     void setBlinkDelay(int delay) override;
@@ -15,6 +15,9 @@ public:
 private:
     ITiming &m_timing;
     int m_ledPin;
-    int m_blinkDelay;
+    int m_currentBlinkDelay;
+    int m_nextBlinkDelay;
     std::set<size_t> m_timingIDs;
+
+    void setBlinkDelayInternal(int delay);
 };

@@ -17,22 +17,16 @@ void setup()
   auto &advertisement = Advertisement::create();
   auto &scanner = Scanner::create();
   Blinker blinker(timing, LED_PIN);
-  // std::unique_ptr<IScanner> scanner = std::make_unique<Scanner>();
-  // std::unique_ptr<IBlinker> blinker = std::make_unique<Blinker>(LED_PIN);
 
-  // Behaviour app(*advertisement, *scanner, *blinker);
-
-  advertisement.start(&timing);
-  scanner.start();
-  blinker.setBlinkDelay(1000);
+  Behaviour app(timing, advertisement, scanner, blinker);
 
   Serial.println("Initialisation complete");
-  // app.run(); // Blocks here
+  app.start();
 
   while (true)
   {
     timing.loop();
-    delay(50);
+    delay(LOOP_TIME);
   }
 }
 

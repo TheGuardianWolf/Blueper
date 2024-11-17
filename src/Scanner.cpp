@@ -32,7 +32,7 @@ void Scanner::start()
 void Scanner::update()
 {
     Serial.println("Scan started");
-    m_pBLEScan->start(5, &onScanComplete, false);
+    m_pBLEScan->start(SCAN_DURATION, &onScanComplete, false);
 }
 
 int Scanner::getRSSI() const

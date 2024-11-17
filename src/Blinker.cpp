@@ -2,12 +2,27 @@
 #include <Arduino.h>
 
 Blinker::Blinker(ITiming &timing, int pin)
-    : m_timing(timing), m_ledPin(pin), m_blinkDelay(OFF)
+    : m_timing(timing), m_ledPin(pin), m_currentBlinkDelay(OFF), m_nextBlinkDelay(OFF)
 {
     pinMode(m_ledPin, OUTPUT);
 }
 
 void Blinker::setBlinkDelay(int delay)
+{
+    m_nextBlinkDelay = delay;
+
+    if (m_timingIDs.size() > 0)
+    {
+        return;
+    }
+
+    if (m_currentBlinkDelay != m_nextBlinkDelay)
+    {
+        setBlinkDelayInternal(delay);
+    }
+}
+
+void Blinker::setBlinkDelayInternal(int delay)
 {
     // Remove existing
     for (auto t : m_timingIDs)
@@ -20,7 +35,7 @@ void Blinker::setBlinkDelay(int delay)
     {
         digitalWrite(m_ledPin, HIGH);
     }
-    else if (delay < 0)
+    else if (delay == OFF || delay <= 0)
     {
         digitalWrite(m_ledPin, LOW);
     }
@@ -30,17 +45,25 @@ void Blinker::setBlinkDelay(int delay)
         auto id1 = m_timing.scheduleEvent(
             [this]()
             {
-                digitalWrite(m_ledPin, LOW);
+                if (m_currentBlinkDelay == m_nextBlinkDelay)
+                {
+                    digitalWrite(m_ledPin, HIGH);
+                }
+                else
+                {
+                    m_currentBlinkDelay = m_nextBlinkDelay;
+                    setBlinkDelayInternal(m_nextBlinkDelay);
+                }
                 return false;
             },
             period, 0);
         auto id2 = m_timing.scheduleEvent(
             [this]()
             {
-                digitalWrite(m_ledPin, HIGH);
+                digitalWrite(m_ledPin, LOW);
                 return false;
             },
-            period, period - period / 4);
+            period, period / 4);
 
         m_timingIDs.insert({id1, id2});
     }
