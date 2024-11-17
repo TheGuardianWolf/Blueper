@@ -26,10 +26,7 @@ private:
         size_t m_id = 0;
         std::function<bool()> m_callback = nullptr;
         unsigned long long m_period = 0;
-        unsigned long long m_startTime = 0;
         unsigned long long m_scheduledTime = 0;
-        bool m_startTimeIsAbsolute = false;
-        unsigned long long m_lastExecutionTime = 0;
         unsigned long long m_nextExecutionTime = 0;
     };
 

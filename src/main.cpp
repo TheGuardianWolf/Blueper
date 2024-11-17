@@ -24,7 +24,7 @@ void setup()
 
   advertisement.start(&timing);
   scanner.start();
-  blinker.setBlinkDelay(2000);
+  blinker.setBlinkDelay(1000);
 
   Serial.println("Initialisation complete");
   // app.run(); // Blocks here
