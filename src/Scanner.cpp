@@ -15,10 +15,16 @@ void Scanner::onScanComplete(BLEScanResults results)
     Serial.println("Scan completed");
     auto &scanner = create();
     scanner.update();
+
+    std::lock_guard lock{scanner.m_lock};
+    // If scan iteration > 3, remove it
+    std::remove_if(scanner.m_scannedDevices.begin(), scanner.m_scannedDevices.end(), [&scanner](ScannedDevice &sd)
+                   { return sd.m_lastIterationSeen + 3 < scanner.m_scanIteration; });
+    scanner.m_scanIteration++;
 }
 
 Scanner::Scanner()
-    : m_latestRSSI(0), m_pBLEScan(BLEDevice::getScan())
+    : m_pBLEScan(BLEDevice::getScan())
 {
 }
 
@@ -37,12 +43,16 @@ void Scanner::update()
 
 int Scanner::getRSSI() const
 {
-    return m_latestRSSI;
-}
+    std::lock_guard lock{m_lock};
 
-void Scanner::setRSSI(const int rssi)
-{
-    m_latestRSSI = rssi;
+    if (!m_scannedDevices.size())
+    {
+        return 0;
+    }
+
+    auto iter = std::max_element(m_scannedDevices.begin(), m_scannedDevices.end(), [](ScannedDevice &sdA, ScannedDevice &sdB)
+                                 { return sdA.m_rssi < sdB.m_rssi; });
+    return iter->m_rssi;
 }
 
 Scanner::AdvertisedDeviceCallbacks::AdvertisedDeviceCallbacks(const BLEUUID &uuid, Scanner &scanner)
@@ -53,14 +63,33 @@ void Scanner::AdvertisedDeviceCallbacks::onResult(BLEAdvertisedDevice advertised
     if (advertisedDevice.haveServiceUUID() && advertisedDevice.getServiceUUID().equals(m_targetUUID))
     {
         Serial.print("Beacon found: ");
-        Serial.println(advertisedDevice.toString().c_str());
+        auto name = advertisedDevice.toString();
+        auto address = advertisedDevice.getAddress();
+        Serial.printf("%s [%s]", name, address.toString());
 
         if (advertisedDevice.haveRSSI())
         {
             auto rssi = advertisedDevice.getRSSI();
-            m_scanner.setRSSI(rssi);
             Serial.print("RSSI: ");
             Serial.println(rssi);
+
+            std::lock_guard lock{m_scanner.m_lock};
+
+            if (auto iter = std::find(m_scanner.m_scannedDevices.begin(), m_scanner.m_scannedDevices.end(), [&address](ScannedDevice &sd)
+                                      { return sd.m_address == address; });
+                iter != m_scanner.m_scannedDevices.end())
+            {
+                iter->m_lastIterationSeen = m_scanner.m_scanIteration;
+                iter->m_rssi = rssi;
+            }
+            else
+            {
+                m_scanner.m_scannedDevices.push_back(ScannedDevice{
+                    .m_address = address,
+                    .m_name = name,
+                    .m_rssi = rssi,
+                    .m_lastIterationSeen = m_scanner.m_scanIteration});
+            }
         }
     }
 }
