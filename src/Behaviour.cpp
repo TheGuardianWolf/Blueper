@@ -16,22 +16,22 @@ void Behaviour::start()
         [this]()
         {
             Serial.println("Checking RSSI...");
-            auto rssi = m_scanner.getRSSI();
-            handleScanResult(rssi);
+            auto pathLoss = m_scanner.getPathLoss();
+            handleScanResult(pathLoss);
             return false;
         },
         1000, 0);
 }
 
-void Behaviour::handleScanResult(int rssi)
+void Behaviour::handleScanResult(int pathLoss)
 {
-    if (rssi != 0)
-    {                                                      // Assuming 0 means no valid RSSI
-        auto blinkDelay = map(rssi, -100, -50, 3000, 100); // Adjust the range as needed
-        if (rssi != m_currentRssi)
+    if (pathLoss != 0)
+    {                                                        // Assuming 0 means no valid RSSI
+        auto blinkDelay = map(pathLoss, 10, 100, 3000, 100); // Adjust the range as needed
+        if (pathLoss != m_currentPathLoss)
         {
-            m_currentRssi = rssi;
-            Serial.printf("Rssi is %d, setting delay to %d\n", rssi, blinkDelay);
+            m_currentPathLoss = pathLoss;
+            Serial.printf("Path loss is %d, setting delay to %d\n", pathLoss, blinkDelay);
             m_blinker.setBlinkDelay(blinkDelay);
         }
     }

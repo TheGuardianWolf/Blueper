@@ -18,5 +18,5 @@ private:
     void handleScanResult(int rssi);
 
     size_t m_blinkRefreshID = 0;
-    int m_currentRssi = 0;
+    int m_currentPathLoss = 0;
 };

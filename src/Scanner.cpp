@@ -41,7 +41,7 @@ void Scanner::update()
     m_pBLEScan->start(SCAN_DURATION, &onScanComplete, false);
 }
 
-int Scanner::getRSSI()
+int Scanner::getPathLoss()
 {
     std::lock_guard lock{m_lock};
 
@@ -51,8 +51,8 @@ int Scanner::getRSSI()
     }
 
     auto iter = std::max_element(m_scannedDevices.begin(), m_scannedDevices.end(), [](const ScannedDevice &sdA, const ScannedDevice &sdB)
-                                 { return sdA.m_rssi < sdB.m_rssi; });
-    return iter->m_rssi;
+                                 { return (sdA.m_txPower - sdA.m_rssi) > (sdB.m_txPower - sdB.m_rssi); });
+    return iter->m_txPower - iter->m_rssi;
 }
 
 Scanner::AdvertisedDeviceCallbacks::AdvertisedDeviceCallbacks(const BLEUUID &uuid, Scanner &scanner)
@@ -67,6 +67,7 @@ void Scanner::AdvertisedDeviceCallbacks::onResult(BLEAdvertisedDevice advertised
             auto name = advertisedDevice.toString();
             auto address = advertisedDevice.getAddress();
             auto rssi = advertisedDevice.getRSSI();
+            auto txPower = advertisedDevice.getTXPower();
 
             Serial.print("Beacon found: ");
             Serial.println(name.data());
@@ -81,6 +82,7 @@ void Scanner::AdvertisedDeviceCallbacks::onResult(BLEAdvertisedDevice advertised
             {
                 iter->m_lastIterationSeen = m_scanner.m_scanIteration;
                 iter->m_rssi = rssi;
+                iter->m_txPower = txPower;
             }
             else
             {
@@ -88,6 +90,7 @@ void Scanner::AdvertisedDeviceCallbacks::onResult(BLEAdvertisedDevice advertised
                     .m_address = address,
                     .m_name = name,
                     .m_rssi = rssi,
+                    .m_txPower = txPower,
                     .m_lastIterationSeen = m_scanner.m_scanIteration});
             }
         }

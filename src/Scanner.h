@@ -18,7 +18,7 @@ public:
     void operator=(Scanner const &) = delete;
 
     void start() override;
-    int getRSSI() override;
+    int getPathLoss() override;
 
     friend class AdvertisedDeviceCallbacks;
 
@@ -27,6 +27,7 @@ public:
         BLEAddress m_address;
         std::string m_name = "";
         int m_rssi = 0;
+        int m_txPower = 0;
         unsigned long m_lastIterationSeen = 0;
     };
 
