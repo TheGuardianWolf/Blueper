@@ -17,9 +17,9 @@ void Scanner::onScanComplete(BLEScanResults results)
     scanner.update();
 
     std::lock_guard lock{scanner.m_lock};
-    // If scan iteration > 3, remove it
-    std::remove_if(scanner.m_scannedDevices.begin(), scanner.m_scannedDevices.end(), [&scanner](ScannedDevice &sd)
-                   { return sd.m_lastIterationSeen + 3 < scanner.m_scanIteration; });
+    // If scan iteration > 2, remove it
+    scanner.m_scannedDevices.remove_if([&scanner](const ScannedDevice &sd)
+                                       { return sd.m_lastIterationSeen + 2 < scanner.m_scanIteration; });
     scanner.m_scanIteration++;
 }
 
@@ -41,7 +41,7 @@ void Scanner::update()
     m_pBLEScan->start(SCAN_DURATION, &onScanComplete, false);
 }
 
-int Scanner::getRSSI() const
+int Scanner::getRSSI()
 {
     std::lock_guard lock{m_lock};
 
@@ -50,7 +50,7 @@ int Scanner::getRSSI() const
         return 0;
     }
 
-    auto iter = std::max_element(m_scannedDevices.begin(), m_scannedDevices.end(), [](ScannedDevice &sdA, ScannedDevice &sdB)
+    auto iter = std::max_element(m_scannedDevices.begin(), m_scannedDevices.end(), [](const ScannedDevice &sdA, const ScannedDevice &sdB)
                                  { return sdA.m_rssi < sdB.m_rssi; });
     return iter->m_rssi;
 }
@@ -62,21 +62,21 @@ void Scanner::AdvertisedDeviceCallbacks::onResult(BLEAdvertisedDevice advertised
 {
     if (advertisedDevice.haveServiceUUID() && advertisedDevice.getServiceUUID().equals(m_targetUUID))
     {
-        Serial.print("Beacon found: ");
-        auto name = advertisedDevice.toString();
-        auto address = advertisedDevice.getAddress();
-        Serial.printf("%s [%s]", name, address.toString());
-
-        if (advertisedDevice.haveRSSI())
+        if (advertisedDevice.haveRSSI() && advertisedDevice.haveTXPower())
         {
+            auto name = advertisedDevice.toString();
+            auto address = advertisedDevice.getAddress();
             auto rssi = advertisedDevice.getRSSI();
+
+            Serial.print("Beacon found: ");
+            Serial.println(name.data());
             Serial.print("RSSI: ");
             Serial.println(rssi);
 
             std::lock_guard lock{m_scanner.m_lock};
 
-            if (auto iter = std::find(m_scanner.m_scannedDevices.begin(), m_scanner.m_scannedDevices.end(), [&address](ScannedDevice &sd)
-                                      { return sd.m_address == address; });
+            if (auto iter = std::find_if(m_scanner.m_scannedDevices.begin(), m_scanner.m_scannedDevices.end(), [&address](const ScannedDevice &sd)
+                                         { return address.equals(sd.m_address); });
                 iter != m_scanner.m_scannedDevices.end())
             {
                 iter->m_lastIterationSeen = m_scanner.m_scanIteration;

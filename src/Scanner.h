@@ -18,11 +18,10 @@ public:
     void operator=(Scanner const &) = delete;
 
     void start() override;
-    int getRSSI() const override;
+    int getRSSI() override;
 
     friend class AdvertisedDeviceCallbacks;
 
-private:
     struct ScannedDevice
     {
         BLEAddress m_address;
@@ -31,6 +30,7 @@ private:
         unsigned long m_lastIterationSeen = 0;
     };
 
+private:
     class AdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
     {
     public:
