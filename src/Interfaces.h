@@ -40,5 +40,4 @@ class IAdvertisement
 public:
     virtual ~IAdvertisement() = default;
     virtual void start(ITiming *pTiming) = 0;
-    virtual void loop() = 0;
 };

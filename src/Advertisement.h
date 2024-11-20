@@ -18,7 +18,8 @@ public:
     void operator=(Advertisement const &) = delete;
 
     void start(ITiming *pTiming) override;
-    void loop() override;
+
+    void switchTopic(const std::string &topic);
 
     friend class ServerCallbacks;
 

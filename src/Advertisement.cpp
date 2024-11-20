@@ -1,6 +1,7 @@
 #include "Advertisement.h"
 #include "Defines.h"
 #include <Arduino.h>
+#include "CRC.h"
 
 // Singleton
 Advertisement &Advertisement::create()
@@ -44,40 +45,52 @@ void Advertisement::start(ITiming *pTiming)
     m_pCharacteristicSetTopic->setCallbacks(m_pCallbacks.get());
     m_pCharacteristicSetDeviceName->setCallbacks(m_pCallbacks.get());
 
-    // Eventually save this into mem
-    m_pCharacteristicTopic->setValue(DEFAULT_BLUEPER_VALUE);
-
     uint8_t TRUE = 1;
     m_pCharacteristicIsConfigurable->setValue(&TRUE, 1);
+
+    m_pService->start();
+
+    switchTopic(DEFAULT_BLUEPER_VALUE);
+
+    m_pTiming->scheduleEventAbsolute([this]()
+                                     {
+        if (m_configurable)
+        {
+            Serial.println("Disabling configuration!");
+            m_configurable = false;
+
+            uint8_t FALSE = 0;
+            m_pCharacteristicIsConfigurable->setValue(&FALSE, 1);
+            m_pCharacteristicIsConfigurable->notify();
+        }
+
+        return true; }, 0, 60000);
+}
+
+void Advertisement::switchTopic(const std::string &topic)
+{
+    // Eventually save this into mem
+    m_pCharacteristicTopic->setValue(topic);
 
     BLEAdvertisementData advertisementData;
     advertisementData.setAppearance(ESP_BLE_APPEARANCE_GENERIC_TAG); // Generic Tag
     // Use crc16 hash here to help ping devices
-    // advertisementData.setManufacturerData
+    auto data = reinterpret_cast<const uint8_t *>(topic.data());
+    Crc16Ccitt1021 crcBuilder;
+    crcBuilder.CalcBuffer(data, topic.size());
+    auto crc = __htons(crcBuilder.Result());
+    char crcData[2]{static_cast<char>((crc >> 8) & 0x0F), static_cast<char>(crc & 0x0F)};
+    auto crcStr = std::string(crcData, 2);
+    advertisementData.setManufacturerData(crcStr);
 
     m_pAdvertising = m_pServer->getAdvertising();
     m_pAdvertising->setAdvertisementData(advertisementData);
     m_pAdvertising->setScanResponse(true);
     m_pAdvertising->addServiceUUID(BLUEPER_SERVICE_ID);
 
-    m_pService->start();
     m_pAdvertising->start();
 
-    Serial.println("Advertisement started");
-}
-
-void Advertisement::loop()
-{
-    auto currentMs = m_pTiming->getTimestamp();
-    if (currentMs >= 60000 && m_configurable)
-    {
-        Serial.println("Disabling configuration!");
-        m_configurable = false;
-
-        uint8_t FALSE = 0;
-        m_pCharacteristicIsConfigurable->setValue(&FALSE, 1);
-        m_pCharacteristicIsConfigurable->notify();
-    }
+    Serial.printf("Advertisement started with topic: %s\n", topic.data());
 }
 
 void Advertisement::ServerCallbacks::onConnect(BLEServer *pServer, esp_ble_gatts_cb_param_t *param)
@@ -108,9 +121,9 @@ void Advertisement::ServerCallbacks::onWrite(BLECharacteristic *pCharacteristic,
     auto value = pCharacteristic->getValue();
     if (uuid.equals(BLUEPER_CHARACTERISTIC_SET_TOPIC_ID))
     {
-        auto *topicChar = m_advertisement.m_pCharacteristicTopic;
-        topicChar->setValue(value);
-        topicChar->notify();
+        // Switch topics here
+        m_advertisement.switchTopic(value);
+        m_advertisement.m_pCharacteristicTopic->notify();
     }
     else if (uuid.equals(BLUEPER_CHARACTERISTIC_SET_DEVICE_NAME_ID))
     {

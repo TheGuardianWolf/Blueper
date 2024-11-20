@@ -27,7 +27,7 @@ void Behaviour::handleScanResult(int pathLoss)
 {
     if (pathLoss != 0)
     {                                                        // Assuming 0 means no valid RSSI
-        auto blinkDelay = map(pathLoss, 10, 100, 3000, 100); // Adjust the range as needed
+        auto blinkDelay = map(pathLoss, 100, 10, 3000, 100); // Adjust the range as needed
         if (pathLoss != m_currentPathLoss)
         {
             m_currentPathLoss = pathLoss;
